@@ -122,9 +122,11 @@ func addPosts() ([]list.Item, error) {
 	files, err := os.ReadDir("./posts/")
 	for _, v := range files {
 		if name := v.Name(); path.Ext(name) == ".md" {
+			info, _ := v.Info()
+
 			items = append(items, post{
-				title:       v.Name(),
-				description: "test description",
+				title:       name,
+				description: info.ModTime().String(),
 			})
 		}
 	}
