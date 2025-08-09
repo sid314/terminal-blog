@@ -56,7 +56,7 @@ func (p post) FilterValue() string {
 	return p.title
 }
 
-func initialModael() model {
+func initialModel() model {
 	items := []list.Item{
 		post{
 			title:       "test1",
@@ -73,7 +73,7 @@ func initialModael() model {
 }
 
 func main() {
-	p := tea.NewProgram(initialModael())
+	p := tea.NewProgram(initialModel())
 	_, err := p.Run()
 	if err != nil {
 		log.Fatalln(err)
