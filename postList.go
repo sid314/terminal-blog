@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/fsnotify/fsnotify"
 )
 
 var style = lipgloss.NewStyle().Margin(1, 2)
@@ -19,7 +18,7 @@ type postList struct {
 }
 
 func (m postList) Init() tea.Cmd {
-	return checkFolderUpdates
+	return nil
 }
 
 func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -87,39 +86,6 @@ func initialList() postList {
 	list := list.New(items, list.NewDefaultDelegate(), 0, 0)
 	list.Title = "Posts"
 	return postList{list: list}
-}
-
-type (
-	errMsg          struct{ err error }
-	updateNeededMsg struct{}
-)
-
-func checkFolderUpdates() tea.Msg {
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		return errMsg{err: err}
-	}
-	defer watcher.Close()
-	err = watcher.Add("./posts/")
-	if err != nil {
-		return errMsg{err: err}
-	}
-
-	for {
-		select {
-		case _, ok := <-watcher.Events:
-			if !ok {
-				return nil
-			}
-			return updateNeededMsg{}
-		case err, ok := <-watcher.Errors:
-			if !ok {
-				return nil
-			}
-
-			return errMsg{err: err}
-		}
-	}
 }
 
 func addPosts() ([]list.Item, error) {

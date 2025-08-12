@@ -75,5 +75,9 @@ func main() {
 		postList: initialList(),
 		blogPage: *initBlog,
 	}, tea.WithAltScreen())
+	// p := tea.NewProgram(initialList(), tea.WithAltScreen())
+	go func() {
+		checkFolderUpdates(p)
+	}()
 	p.Run()
 }
