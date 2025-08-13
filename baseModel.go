@@ -1,10 +1,12 @@
 package main
 
 import (
+	"io"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type sessionState uint
@@ -26,6 +28,7 @@ type baseModel struct {
 	postList postList
 	blogPage blogPage
 	focused  tea.Model
+	dump     io.Writer
 }
 
 func (b baseModel) Init() tea.Cmd {
@@ -33,6 +36,9 @@ func (b baseModel) Init() tea.Cmd {
 }
 
 func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if b.dump != nil {
+		spew.Fdump(b.dump, "from basemodel %s", msg)
+	}
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch message := msg.(type) {
@@ -70,18 +76,19 @@ func (b baseModel) View() string {
 	return s
 }
 
-func initialBaseModel() (*baseModel, error) {
+func initialBaseModel(dump io.Writer) (*baseModel, error) {
 	filebuf, err := os.ReadFile("./posts/test1.md")
 	if err != nil {
 		return nil, err
 	}
-	initBlog, err := newBlogPage(string(filebuf))
+	initBlog, err := newBlogPage(string(filebuf), dump)
 	if err != nil {
 		return nil, err
 	}
 	return &baseModel{
 		state:    listView,
-		postList: initialList(),
+		postList: initialList(dump),
 		blogPage: *initBlog,
+		dump:     dump,
 	}, nil
 }

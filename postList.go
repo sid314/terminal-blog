@@ -1,17 +1,20 @@
 package main
 
 import (
+	"io"
 	"log"
 	"os"
 	"path"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type postList struct {
 	posts []post
 	list  list.Model
+	dump  io.Writer
 }
 
 func (m postList) Init() tea.Cmd {
@@ -19,6 +22,9 @@ func (m postList) Init() tea.Cmd {
 }
 
 func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.dump != nil {
+		spew.Fdump(m.dump, "from postlist %s", msg)
+	}
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if m.list.FilterState() == list.Filtering {
@@ -45,13 +51,15 @@ func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		} else {
 			m.list.SetItems(items)
+			spew.Fdump(m.dump, "updated the items")
 		}
 
 	}
 
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
-	return m, tea.Batch(cmd)
+	spew.Fdump(m.dump, "updated the list")
+	return m, cmd
 }
 
 func (m postList) View() string {
@@ -74,15 +82,15 @@ func (p post) FilterValue() string {
 	return p.title
 }
 
-func initialList() postList {
+func initialList(dump io.Writer) postList {
 	items, err := addPosts()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	list := list.New(items, list.NewDefaultDelegate(), 0, 0)
+	list := list.New(items, list.NewDefaultDelegate(), 50, 20)
 	list.Title = "Posts"
-	return postList{list: list}
+	return postList{list: list, dump: dump}
 }
 
 func addPosts() ([]list.Item, error) {

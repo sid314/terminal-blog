@@ -1,15 +1,19 @@
 package main
 
 import (
+	"io"
+
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type blogPage struct {
 	title    string
 	path     string
 	viewport viewport.Model
+	dump     io.Writer
 }
 
 func (b blogPage) Init() tea.Cmd {
@@ -17,6 +21,9 @@ func (b blogPage) Init() tea.Cmd {
 }
 
 func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if b.dump != nil {
+		spew.Fdump(b.dump, "from blogPage %s", msg)
+	}
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -31,7 +38,7 @@ func (b blogPage) View() string {
 	return b.viewport.View()
 }
 
-func newBlogPage(fileContent string) (*blogPage, error) {
+func newBlogPage(fileContent string, dump io.Writer) (*blogPage, error) {
 	vp := viewport.New(70, 20)
 	vp.Style = style
 	const glamourGutter = 2
@@ -48,5 +55,6 @@ func newBlogPage(fileContent string) (*blogPage, error) {
 	vp.SetContent(str)
 	return &blogPage{
 		viewport: vp,
+		dump:     dump,
 	}, nil
 }
