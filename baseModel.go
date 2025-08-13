@@ -25,8 +25,8 @@ var (
 
 type baseModel struct {
 	state    sessionState
-	postList postList
-	blogPage blogPage
+	postList tea.Model
+	blogPage tea.Model
 	focused  tea.Model
 	dump     io.Writer
 }
@@ -55,10 +55,10 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	switch b.state {
 	case listView:
-		_, cmd := b.postList.Update(msg)
+		b.postList, cmd = b.postList.Update(msg)
 		cmds = append(cmds, cmd)
 	case contentView:
-		_, cmd := b.blogPage.Update(msg)
+		b.blogPage, cmd = b.blogPage.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 	return b, tea.Batch(cmds...)

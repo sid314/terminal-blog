@@ -38,7 +38,7 @@ func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		h, v := style.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
+		m.list.SetSize(msg.Width-h, msg.Height-v-10)
 		var cmd tea.Cmd
 		m.list, cmd = m.list.Update(msg)
 
@@ -88,7 +88,7 @@ func initialList(dump io.Writer) postList {
 		log.Fatal(err)
 	}
 
-	list := list.New(items, list.NewDefaultDelegate(), 50, 20)
+	list := list.New(items, list.NewDefaultDelegate(), 0, 0)
 	list.Title = "Posts"
 	return postList{list: list, dump: dump}
 }
