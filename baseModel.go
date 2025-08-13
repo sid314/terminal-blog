@@ -26,9 +26,9 @@ func (b baseModel) Init() tea.Cmd {
 func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
-	switch msg := msg.(type) {
+	switch message := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
+		switch message.String() {
 		case "q":
 			cmd = tea.Quit
 			cmds = append(cmds, cmd)
