@@ -7,10 +7,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
-
-var style = lipgloss.NewStyle().Margin(1, 2)
 
 type postList struct {
 	posts []post

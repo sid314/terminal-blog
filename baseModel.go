@@ -4,6 +4,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type sessionState uint
@@ -13,10 +14,18 @@ const (
 	contentView
 )
 
+var (
+	style        = lipgloss.NewStyle().Margin(1, 2)
+	focusedStyle = lipgloss.NewStyle().Margin(1, 2).
+			Border(lipgloss.RoundedBorder(), true).
+			BorderForeground(lipgloss.Color("62"))
+)
+
 type baseModel struct {
 	state    sessionState
 	postList postList
 	blogPage blogPage
+	focused  tea.Model
 }
 
 func (b baseModel) Init() tea.Cmd {
@@ -53,9 +62,10 @@ func (b baseModel) View() string {
 	var s string
 	switch b.state {
 	case listView:
-		s = b.postList.View()
+		s = lipgloss.JoinHorizontal(lipgloss.Top, focusedStyle.Render(b.postList.View()), style.Render(b.blogPage.View()))
+
 	case contentView:
-		s = b.blogPage.View()
+		s = lipgloss.JoinHorizontal(lipgloss.Top, style.Render(b.postList.View()), focusedStyle.Render(b.blogPage.View()))
 	}
 	return s
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type blogPage struct {
@@ -34,7 +33,7 @@ func (b blogPage) View() string {
 
 func newBlogPage(fileContent string) (*blogPage, error) {
 	vp := viewport.New(70, 20)
-	vp.Style = lipgloss.NewStyle().BorderStyle(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("62")).PaddingRight(2)
+	vp.Style = style
 	const glamourGutter = 2
 	glamourRenderWidth := 70 - vp.Style.GetHorizontalFrameSize() - glamourGutter
 	renderer, err := glamour.NewTermRenderer(glamour.WithAutoStyle(),
