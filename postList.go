@@ -121,6 +121,7 @@ func initialList(dump io.Writer) postList {
 	list := list.New(items, list.NewDefaultDelegate(), 0, 0)
 	list.Title = "Posts"
 	list.FilterInput.Width = 10
+	list.SetShowHelp(false)
 	postList.list = list
 	postList.posts = posts
 	postList.focused = postList.posts[postList.index]
