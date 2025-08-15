@@ -44,12 +44,23 @@ func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}, func() tea.Msg {
 				return toggleStateMsg{}
 			})
+		case "right", "l":
+			return m, func() tea.Msg {
+				return toggleStateMsg{}
+			}
+
 		case "j", "down":
 			if m.index != len(m.posts)-1 {
 				m.index++
-				m.focused = m.posts[m.index]
 			}
 
+			m.focused = m.posts[m.index]
+		case "k", "up":
+			if m.index != 0 {
+				m.index--
+			}
+
+			m.focused = m.posts[m.index]
 		}
 	case tea.WindowSizeMsg:
 		h, v := style.GetFrameSize()

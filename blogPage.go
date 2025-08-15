@@ -31,7 +31,7 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch message.String() {
 		case "q", "ctrl+c":
 			return b, tea.Quit
-		case "esc":
+		case "esc", "left", "h":
 			return b, func() tea.Msg {
 				return toggleStateMsg{}
 			}
