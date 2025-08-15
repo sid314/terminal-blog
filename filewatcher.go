@@ -6,9 +6,9 @@ import (
 )
 
 type (
-	errMsg          struct{ err error }
-	updateNeededMsg struct{}
-	nilMsg          struct{}
+	errMsg              struct{ err error }
+	listUpdateNeededMsg struct{}
+	nilMsg              struct{}
 )
 
 func checkFolderUpdates(p *tea.Program) {
@@ -28,7 +28,7 @@ func checkFolderUpdates(p *tea.Program) {
 			if !ok {
 				p.Send(nilMsg{})
 			}
-			p.Send(updateNeededMsg{})
+			p.Send(listUpdateNeededMsg{})
 		case err, ok := <-watcher.Errors:
 			if !ok {
 				p.Send(nilMsg{})

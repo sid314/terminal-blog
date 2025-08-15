@@ -25,10 +25,27 @@ var (
 
 type baseModel struct {
 	state    sessionState
-	postList tea.Model
-	blogPage tea.Model
+	postList postList
+	blogPage blogPage
 	focused  tea.Model
 	dump     io.Writer
+}
+type updateBlogPageMsg struct {
+	path string
+}
+type toggleStateMsg struct{}
+
+func (b baseModel) sendBlogPageUpdate() tea.Cmd {
+	print(b.postList.focused.path)
+	if b.dump != nil {
+		spew.Fdump(b.dump, "path", b.postList.focused.path)
+	}
+	path := b.postList.focused.path
+	return func() tea.Msg {
+		return updateBlogPageMsg{
+			path: path,
+		}
+	}
 }
 
 func (b baseModel) Init() tea.Cmd {
@@ -52,13 +69,25 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "l":
 			b.state = listView
 		}
+	case blogPageUpdateNeededMsg:
+		cmd = b.sendBlogPageUpdate()
+		cmds = append(cmds, cmd)
+	case toggleStateMsg:
+		if b.state == contentView {
+			b.state = listView
+		} else {
+			b.state = contentView
+		}
+
 	}
 	switch b.state {
 	case listView:
-		b.postList, cmd = b.postList.Update(msg)
+		outModel, cmd := b.postList.Update(msg)
+		b.postList = outModel.(postList)
 		cmds = append(cmds, cmd)
 	case contentView:
-		b.blogPage, cmd = b.blogPage.Update(msg)
+		outModel, cmd := b.blogPage.Update(msg)
+		b.blogPage = outModel.(blogPage)
 		cmds = append(cmds, cmd)
 	}
 	return b, tea.Batch(cmds...)

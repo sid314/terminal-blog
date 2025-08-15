@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"os"
 
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,6 +15,7 @@ type blogPage struct {
 	path     string
 	viewport viewport.Model
 	dump     io.Writer
+	renderer *glamour.TermRenderer
 }
 
 func (b blogPage) Init() tea.Cmd {
@@ -24,12 +26,32 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if b.dump != nil {
 		spew.Fdump(b.dump, "from blogPage %s", msg)
 	}
-	switch msg := msg.(type) {
+	switch message := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
+		switch message.String() {
 		case "q", "ctrl+c", "esc":
 			return b, tea.Quit
 		}
+	case updateBlogPageMsg:
+		fileContentBytes, err := os.ReadFile(message.path)
+		if err != nil {
+			// TODO: Fatal error
+			if b.dump != nil {
+				spew.Fdump(b.dump, message.path)
+				spew.Fdump(b.dump, "quitting due to err %s", err.Error())
+			}
+			return b, tea.Quit
+		}
+		rendered, err := b.renderer.Render(string(fileContentBytes))
+		if err != nil {
+			// TODO: Fatal error
+			if b.dump != nil {
+				spew.Fdump(b.dump, "quitting due to err %s", err.Error())
+			}
+			return b, tea.Quit
+		}
+		b.viewport.SetContent(rendered)
+
 	}
 	return b, nil
 }
@@ -38,9 +60,14 @@ func (b blogPage) View() string {
 	return b.viewport.View()
 }
 
-func newBlogPage(fileContent string, dump io.Writer) (*blogPage, error) {
+func newBlogPage(content string, dump io.Writer) (*blogPage, error) {
+	blogPage := blogPage{}
+	blogPage.dump = dump
+
 	vp := viewport.New(70, 20)
 	vp.Style = style
+
+	blogPage.viewport = vp
 	const glamourGutter = 2
 	glamourRenderWidth := 70 - vp.Style.GetHorizontalFrameSize() - glamourGutter
 	renderer, err := glamour.NewTermRenderer(glamour.WithAutoStyle(),
@@ -48,13 +75,12 @@ func newBlogPage(fileContent string, dump io.Writer) (*blogPage, error) {
 	if err != nil {
 		return nil, err
 	}
-	str, err := renderer.Render(fileContent)
+
+	blogPage.renderer = renderer
+	str, err := renderer.Render(content)
 	if err != nil {
 		return nil, err
 	}
 	vp.SetContent(str)
-	return &blogPage{
-		viewport: vp,
-		dump:     dump,
-	}, nil
+	return &blogPage, err
 }
