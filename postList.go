@@ -55,11 +55,21 @@ func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			m.focused = m.posts[m.index]
+			var cmd tea.Cmd
+			m.list, cmd = m.list.Update(msg)
+			return m, tea.Batch(func() tea.Msg {
+				return blogPageUpdateNeededMsg{}
+			}, cmd)
 		case "k", "up":
 			if m.index != 0 {
 				m.index--
 			}
 			m.focused = m.posts[m.index]
+			var cmd tea.Cmd
+			m.list, cmd = m.list.Update(msg)
+			return m, tea.Batch(func() tea.Msg {
+				return blogPageUpdateNeededMsg{}
+			}, cmd)
 		case "tab":
 			if m.list.Paginator.Page == m.list.Paginator.TotalPages-1 {
 				m.list.Paginator.Page = 0
