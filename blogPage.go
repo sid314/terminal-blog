@@ -29,8 +29,12 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch message := msg.(type) {
 	case tea.KeyMsg:
 		switch message.String() {
-		case "q", "ctrl+c", "esc":
+		case "q", "ctrl+c":
 			return b, tea.Quit
+		case "esc":
+			return b, func() tea.Msg {
+				return toggleStateMsg{}
+			}
 		}
 	case updateBlogPageMsg:
 		fileContentBytes, err := os.ReadFile(message.path)
