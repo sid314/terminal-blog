@@ -59,8 +59,14 @@ func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.index != 0 {
 				m.index--
 			}
-
 			m.focused = m.posts[m.index]
+		case "tab":
+			if m.list.Paginator.Page == m.list.Paginator.TotalPages-1 {
+				m.list.Paginator.Page = 0
+			} else {
+				m.list.NextPage()
+			}
+
 		}
 	case tea.WindowSizeMsg:
 		h, v := style.GetFrameSize()
