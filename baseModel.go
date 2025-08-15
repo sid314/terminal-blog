@@ -24,16 +24,20 @@ var (
 )
 
 type baseModel struct {
-	state    sessionState
-	postList postList
-	blogPage blogPage
-	focused  tea.Model
-	dump     io.Writer
+	state           sessionState
+	postList        postList
+	blogPage        blogPage
+	focused         tea.Model
+	dump            io.Writer
+	fatalErrorState bool
 }
 type updateBlogPageMsg struct {
 	path string
 }
-type toggleStateMsg struct{}
+type (
+	toggleStateMsg struct{}
+	fatalErrorMsg  struct{}
+)
 
 func (b baseModel) sendBlogPageUpdate() tea.Cmd {
 	print(b.postList.focused.path)

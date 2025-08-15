@@ -35,20 +35,22 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case updateBlogPageMsg:
 		fileContentBytes, err := os.ReadFile(message.path)
 		if err != nil {
-			// TODO: Fatal error
 			if b.dump != nil {
 				spew.Fdump(b.dump, message.path)
 				spew.Fdump(b.dump, "quitting due to err %s", err.Error())
 			}
-			return b, tea.Quit
+			return b, func() tea.Msg {
+				return fatalErrorMsg{}
+			}
 		}
 		rendered, err := b.renderer.Render(string(fileContentBytes))
 		if err != nil {
-			// TODO: Fatal error
 			if b.dump != nil {
 				spew.Fdump(b.dump, "quitting due to err %s", err.Error())
 			}
-			return b, tea.Quit
+			return b, func() tea.Msg {
+				return fatalErrorMsg{}
+			}
 		}
 		b.viewport.SetContent(rendered)
 
