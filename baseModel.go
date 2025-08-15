@@ -40,7 +40,6 @@ type (
 )
 
 func (b baseModel) sendBlogPageUpdate() tea.Cmd {
-	print(b.postList.focused.path)
 	if b.dump != nil {
 		spew.Fdump(b.dump, "path", b.postList.focused.path)
 	}
