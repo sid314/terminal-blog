@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"os"
 
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -36,28 +35,6 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return toggleStateMsg{}
 			}
 		}
-	case updateBlogPageMsg:
-		fileContentBytes, err := os.ReadFile(message.path)
-		if err != nil {
-			if b.dump != nil {
-				spew.Fdump(b.dump, message.path)
-				spew.Fdump(b.dump, "quitting due to err %s", err.Error())
-			}
-			return b, func() tea.Msg {
-				return fatalErrorMsg{}
-			}
-		}
-		rendered, err := b.renderer.Render(string(fileContentBytes))
-		if err != nil {
-			if b.dump != nil {
-				spew.Fdump(b.dump, "quitting due to err %s", err.Error())
-			}
-			return b, func() tea.Msg {
-				return fatalErrorMsg{}
-			}
-		}
-		b.viewport.SetContent(rendered)
-
 	}
 	return b, nil
 }

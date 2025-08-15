@@ -81,6 +81,27 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			b.state = contentView
 		}
+	case updateBlogPageMsg:
+		fileContentBytes, err := os.ReadFile(message.path)
+		if err != nil {
+			if b.dump != nil {
+				spew.Fdump(b.dump, message.path)
+				spew.Fdump(b.dump, "quitting due to err %s", err.Error())
+			}
+			return b, func() tea.Msg {
+				return fatalErrorMsg{}
+			}
+		}
+		rendered, err := b.blogPage.renderer.Render(string(fileContentBytes))
+		if err != nil {
+			if b.dump != nil {
+				spew.Fdump(b.dump, "quitting due to err %s", err.Error())
+			}
+			return b, func() tea.Msg {
+				return fatalErrorMsg{}
+			}
+		}
+		b.blogPage.viewport.SetContent(rendered)
 
 	}
 	switch b.state {
