@@ -66,6 +66,7 @@ func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.list.NextPage()
 			}
+			m.focused = m.posts[m.list.GlobalIndex()]
 
 		}
 	case tea.WindowSizeMsg:
