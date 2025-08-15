@@ -34,6 +34,14 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return b, func() tea.Msg {
 				return toggleStateMsg{}
 			}
+		case "j", "down":
+			b.viewport.ScrollDown(1)
+		case "k", "up":
+			b.viewport.ScrollUp(1)
+		case "G":
+			b.viewport.GotoBottom()
+		case "g":
+			b.viewport.GotoTop()
 		}
 	}
 	return b, nil
