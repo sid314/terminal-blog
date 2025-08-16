@@ -17,8 +17,8 @@ const (
 )
 
 const (
-	minWidth  = 100
-	minHeight = 30
+	minWidth  = 140
+	minHeight = 35
 )
 
 var (

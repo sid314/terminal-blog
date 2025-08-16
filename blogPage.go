@@ -41,20 +41,6 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "g":
 			b.viewport.GotoTop()
 		}
-	case tea.WindowSizeMsg:
-		b.viewport.Height = message.Height - 5
-		b.viewport.Width = message.Width / 2
-		glamourRenderWidth := b.viewport.Width - b.viewport.Style.GetHorizontalFrameSize()
-		renderer, err := glamour.NewTermRenderer(glamour.WithAutoStyle(), glamour.WithWordWrap(glamourRenderWidth))
-		if err != nil {
-			return b, func() tea.Msg {
-				return fatalErrorMsg{}
-			}
-		}
-		b.renderer = renderer
-		return b, func() tea.Msg {
-			return updateBlogPageMsg{}
-		}
 	}
 	return b, nil
 }
@@ -67,12 +53,11 @@ func newBlogPage(content string, dump io.Writer) (*blogPage, error) {
 	blogPage := blogPage{}
 	blogPage.dump = dump
 
-	vp := viewport.New(70, 27)
+	vp := viewport.New(80, 32)
 	vp.Style = style
 
 	blogPage.viewport = vp
-	const glamourGutter = 0
-	glamourRenderWidth := 70 - vp.Style.GetHorizontalFrameSize() - glamourGutter
+	glamourRenderWidth := vp.Width
 	renderer, err := glamour.NewTermRenderer(glamour.WithAutoStyle(),
 		glamour.WithWordWrap(glamourRenderWidth))
 	if err != nil {
