@@ -10,8 +10,6 @@ import (
 )
 
 type blogPage struct {
-	title    string
-	path     string
 	viewport viewport.Model
 	dump     io.Writer
 	renderer *glamour.TermRenderer
@@ -43,6 +41,11 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "g":
 			b.viewport.GotoTop()
 		}
+	case tea.WindowSizeMsg:
+		b.viewport.Height = message.Height
+		var cmd tea.Cmd
+		b.viewport, cmd = b.viewport.Update(message)
+		return b, cmd
 	}
 	return b, nil
 }
@@ -55,11 +58,11 @@ func newBlogPage(content string, dump io.Writer) (*blogPage, error) {
 	blogPage := blogPage{}
 	blogPage.dump = dump
 
-	vp := viewport.New(70, 20)
+	vp := viewport.New(70, 27)
 	vp.Style = style
 
 	blogPage.viewport = vp
-	const glamourGutter = 2
+	const glamourGutter = 0
 	glamourRenderWidth := 70 - vp.Style.GetHorizontalFrameSize() - glamourGutter
 	renderer, err := glamour.NewTermRenderer(glamour.WithAutoStyle(),
 		glamour.WithWordWrap(glamourRenderWidth))

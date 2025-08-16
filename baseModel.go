@@ -16,6 +16,11 @@ const (
 	contentView
 )
 
+const (
+	minWidth  = 100
+	minHeight = 30
+)
+
 var (
 	style        = lipgloss.NewStyle().Margin(1, 2)
 	focusedStyle = lipgloss.NewStyle().Margin(1, 2).
@@ -30,6 +35,7 @@ type baseModel struct {
 	focused         tea.Model
 	dump            io.Writer
 	fatalErrorState bool
+	tooSmall        bool
 }
 type updateBlogPageMsg struct {
 	path string
@@ -102,6 +108,16 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		b.blogPage.viewport.SetContent(rendered)
+	case tea.WindowSizeMsg:
+		spew.Fdump(b.dump, message.Width, message.Height)
+		b1 := message.Width < minWidth
+		b2 := message.Height < minHeight
+		spew.Fdump(b.dump, b1, b2)
+		if b1 || b2 {
+			b.tooSmall = true
+		} else {
+			b.tooSmall = false
+		}
 
 	}
 	switch b.state {
@@ -119,14 +135,18 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (b baseModel) View() string {
 	var s string
-	switch b.state {
-	case listView:
-		s = lipgloss.JoinHorizontal(lipgloss.Top, focusedStyle.Render(b.postList.View()), style.Render(b.blogPage.View()))
+	if !b.tooSmall {
+		switch b.state {
+		case listView:
+			s = lipgloss.JoinHorizontal(lipgloss.Top, focusedStyle.Render(b.postList.View()), style.Render(b.blogPage.View()))
 
-	case contentView:
-		s = lipgloss.JoinHorizontal(lipgloss.Top, style.Render(b.postList.View()), focusedStyle.Render(b.blogPage.View()))
+		case contentView:
+			s = lipgloss.JoinHorizontal(lipgloss.Top, style.Render(b.postList.View()), focusedStyle.Render(b.blogPage.View()))
+		}
+		return s
+	} else {
+		return "Window Size too small"
 	}
-	return s
 }
 
 func initialBaseModel(dump io.Writer) (*baseModel, error) {

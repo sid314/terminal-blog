@@ -80,8 +80,8 @@ func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		}
 	case tea.WindowSizeMsg:
-		h, v := style.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v-10)
+		// h, v := style.GetFrameSize()
+		m.list.SetSize(msg.Width/3, msg.Height-5)
 		m.list.FilterInput.Width = 10
 		var cmd tea.Cmd
 		m.list, cmd = m.list.Update(msg)
