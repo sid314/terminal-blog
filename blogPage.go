@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -13,6 +14,7 @@ type blogPage struct {
 	viewport viewport.Model
 	dump     io.Writer
 	renderer *glamour.TermRenderer
+	content  string
 }
 
 func (b blogPage) Init() tea.Cmd {
@@ -43,7 +45,36 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		var cmd tea.Cmd
-		b.viewport, cmd = b.viewport.Update(message)
+		// b.viewport.Height = message.Height - 10
+		// b.viewport.Height = message.Width - 10
+		// str, err := b.renderer.Render(b.content)
+		// if err != nil {
+		// 	return b, func() tea.Msg {
+		// 		return fatalErrorMsg{}
+		// 	}
+		// }
+		// b.viewport.SetContent(str)
+		// b.viewport, cmd = b.viewport.Update(message)
+		//
+		vp := newViewPort((message.Width*50)/100, (message.Height*4)/5)
+		spew.Fdump(b.dump, vp.Height, vp.Width)
+
+		renderer, err := newRenderer(vp.Width - vp.Style.GetHorizontalFrameSize())
+		if err != nil {
+			return b, func() tea.Msg {
+				return fatalErrorMsg{}
+			}
+		}
+		b.renderer = renderer
+		str, err := renderer.Render(b.content)
+		if err != nil {
+			return b, func() tea.Msg {
+				return fatalErrorMsg{}
+			}
+		}
+		vp.SetContent(str)
+		b.viewport = vp
+
 		return b, cmd
 	}
 	return b, nil
@@ -53,24 +84,32 @@ func (b blogPage) View() string {
 	return b.viewport.View()
 }
 
+func newViewPort(width, height int) viewport.Model {
+	style = lipgloss.NewStyle().Margin(1, 2)
+	vp := viewport.New(width, height)
+	vp.Style = style
+	return vp
+}
+
+func newRenderer(renderWidth int) (rendere *glamour.TermRenderer, err error) {
+	return glamour.NewTermRenderer(glamour.WithAutoStyle(), glamour.WithWordWrap(renderWidth))
+}
+
 func newBlogPage(content string, dump io.Writer) (*blogPage, error) {
 	blogPage := blogPage{}
 	blogPage.dump = dump
+	blogPage.content = content
 
-	vp := viewport.New(70, 27)
-	vp.Style = style
+	vp := newViewPort(70, 27)
 
 	blogPage.viewport = vp
-	const glamourGutter = 0
-	glamourRenderWidth := 70 - vp.Style.GetHorizontalFrameSize() - glamourGutter
-	renderer, err := glamour.NewTermRenderer(glamour.WithAutoStyle(),
-		glamour.WithWordWrap(glamourRenderWidth))
+	renderer, err := newRenderer(vp.Width - vp.Style.GetHorizontalFrameSize())
 	if err != nil {
 		return nil, err
 	}
 
 	blogPage.renderer = renderer
-	str, err := renderer.Render(content)
+	str, err := renderer.Render(blogPage.content)
 	if err != nil {
 		return nil, err
 	}
