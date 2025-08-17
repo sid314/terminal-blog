@@ -137,8 +137,7 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		outModel, cmd = b.blogPage.Update(msg)
 		b.blogPage = outModel.(blogPage)
 		cmds = append(cmds, cmd)
-	}
-	if active {
+	} else if active {
 		switch b.state {
 		case listView:
 			outModel, cmd := b.postList.Update(msg)
@@ -149,14 +148,12 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			b.blogPage = outModel.(blogPage)
 			cmds = append(cmds, cmd)
 		}
-	}
-	if passToList {
+	} else if passToList {
 
 		outModel, cmd := b.postList.Update(msg)
 		b.postList = outModel.(postList)
 		cmds = append(cmds, cmd)
-	}
-	if passToPage {
+	} else if passToPage {
 
 		outModel, cmd := b.blogPage.Update(msg)
 		b.blogPage = outModel.(blogPage)
