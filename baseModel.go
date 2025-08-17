@@ -17,8 +17,8 @@ const (
 )
 
 const (
-	minWidth  = 140
-	minHeight = 35
+	minWidth  = 100
+	minHeight = 30
 )
 
 var (
@@ -62,6 +62,9 @@ func (b baseModel) Init() tea.Cmd {
 }
 
 func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var all, active, passToList, passToPage bool
+	// if all is true then the msg is passed down to both child models
+	// otherwise if active is true then it is passed down only to the focused model
 	if b.dump != nil {
 		spew.Fdump(b.dump, "from basemodel %s", msg)
 	}
@@ -69,6 +72,7 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch message := msg.(type) {
 	case tea.KeyMsg:
+		active = true
 		switch message.String() {
 		case "q":
 			cmd = tea.Quit
@@ -79,8 +83,10 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			b.state = listView
 		}
 	case blogPageUpdateNeededMsg:
+		all = true
 		cmd = b.sendBlogPageUpdate()
 		cmds = append(cmds, cmd)
+
 	case toggleStateMsg:
 		if b.state == contentView {
 			b.state = listView
@@ -94,20 +100,21 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				spew.Fdump(b.dump, message.path)
 				spew.Fdump(b.dump, "quitting due to err %s", err.Error())
 			}
-			return b, func() tea.Msg {
+			cmds = append(cmds, func() tea.Msg {
 				return fatalErrorMsg{}
-			}
+			})
 		}
 		rendered, err := b.blogPage.renderer.Render(string(fileContentBytes))
 		if err != nil {
 			if b.dump != nil {
 				spew.Fdump(b.dump, "quitting due to err %s", err.Error())
 			}
-			return b, func() tea.Msg {
+			cmds = append(cmds, func() tea.Msg {
 				return fatalErrorMsg{}
-			}
+			})
 		}
 		b.blogPage.viewport.SetContent(rendered)
+		passToList = true
 	case tea.WindowSizeMsg:
 		spew.Fdump(b.dump, message.Width, message.Height)
 		b1 := message.Width < minWidth
@@ -119,13 +126,38 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			b.tooSmall = false
 		}
 
+		all = true
+
 	}
-	switch b.state {
-	case listView:
+	if all {
+
 		outModel, cmd := b.postList.Update(msg)
 		b.postList = outModel.(postList)
 		cmds = append(cmds, cmd)
-	case contentView:
+		outModel, cmd = b.blogPage.Update(msg)
+		b.blogPage = outModel.(blogPage)
+		cmds = append(cmds, cmd)
+	}
+	if active {
+		switch b.state {
+		case listView:
+			outModel, cmd := b.postList.Update(msg)
+			b.postList = outModel.(postList)
+			cmds = append(cmds, cmd)
+		case contentView:
+			outModel, cmd := b.blogPage.Update(msg)
+			b.blogPage = outModel.(blogPage)
+			cmds = append(cmds, cmd)
+		}
+	}
+	if passToList {
+
+		outModel, cmd := b.postList.Update(msg)
+		b.postList = outModel.(postList)
+		cmds = append(cmds, cmd)
+	}
+	if passToPage {
+
 		outModel, cmd := b.blogPage.Update(msg)
 		b.blogPage = outModel.(blogPage)
 		cmds = append(cmds, cmd)
