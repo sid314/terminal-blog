@@ -21,6 +21,13 @@ func (b blogPage) Init() tea.Cmd {
 	return nil
 }
 
+type requestForNewRendererMsg struct {
+	rendererWidth int
+}
+type newRendererMsg struct {
+	renderer *glamour.TermRenderer
+}
+
 func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if b.dump != nil {
 		spew.Fdump(b.dump, "from blogPage %s", msg)
@@ -44,30 +51,9 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			b.viewport.GotoTop()
 		}
 	case tea.WindowSizeMsg:
-		var cmd tea.Cmd
-		// b.viewport.Height = message.Height - 10
-		// b.viewport.Height = message.Width - 10
-		// str, err := b.renderer.Render(b.content)
-		// if err != nil {
-		// 	return b, func() tea.Msg {
-		// 		return fatalErrorMsg{}
-		// 	}
-		// }
-		// b.viewport.SetContent(str)
-		// b.viewport, cmd = b.viewport.Update(message)
-		//
-		// spew.Fdump(b.dump, vp.Height, vp.Width)
 		b.viewport.Height = message.Height - 7
 		b.viewport.Width = message.Width - message.Width/3 - b.viewport.Style.GetHorizontalFrameSize() - 10
-
-		renderer, err := newRenderer(b.viewport.Width - b.viewport.Style.GetHorizontalFrameSize())
-		if err != nil {
-			return b, func() tea.Msg {
-				return fatalErrorMsg{}
-			}
-		}
-		b.renderer = renderer
-		str, err := renderer.Render(b.content)
+		str, err := b.renderer.Render(b.content)
 		if err != nil {
 			return b, func() tea.Msg {
 				return fatalErrorMsg{}
@@ -75,8 +61,39 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		b.viewport.SetContent(str)
 
-		b.viewport, cmd = b.viewport.Update(message)
-		return b, cmd
+		b.viewport, _ = b.viewport.Update(message)
+		return b, func() tea.Msg {
+			return requestForNewRendererMsg{
+				rendererWidth: b.viewport.Width - b.viewport.Style.GetHorizontalFrameSize(),
+			}
+		}
+
+	case requestForNewRendererMsg:
+		renderer, err := newRenderer(message.rendererWidth)
+		if err != nil {
+			return b, func() tea.Msg { return fatalErrorMsg{} }
+		}
+		return b, func() tea.Msg {
+			return newRendererMsg{
+				renderer: renderer,
+			}
+		}
+	case newRendererMsg:
+		{
+
+			str, err := b.renderer.Render(b.content)
+			if err != nil {
+				return b, func() tea.Msg {
+					return fatalErrorMsg{}
+				}
+			}
+			// str := "window resized"
+			b.viewport.SetContent(str)
+
+			b.viewport, _ = b.viewport.Update(message)
+			return b, nil
+		}
+
 	}
 	return b, nil
 }
@@ -92,7 +109,7 @@ func newViewPort(width, height int) viewport.Model {
 	return vp
 }
 
-func newRenderer(renderWidth int) (rendere *glamour.TermRenderer, err error) {
+func newRenderer(renderWidth int) (renderer *glamour.TermRenderer, err error) {
 	return glamour.NewTermRenderer(glamour.WithAutoStyle(), glamour.WithWordWrap(renderWidth))
 }
 
