@@ -134,8 +134,6 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		all = true
-	case requestForNewRendererMsg, newRendererMsg:
-		passToPage = true
 
 	}
 	if all {

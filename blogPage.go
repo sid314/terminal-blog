@@ -22,13 +22,6 @@ func (b blogPage) Init() tea.Cmd {
 	return nil
 }
 
-type requestForNewRendererMsg struct {
-	rendererWidth int
-}
-type newRendererMsg struct {
-	renderer *glamour.TermRenderer
-}
-
 func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if b.dump != nil {
 		spew.Fdump(b.dump, "from blogPage %s", reflect.TypeOf(msg))
@@ -64,35 +57,7 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		b.viewport, _ = b.viewport.Update(message)
 		return b, func() tea.Msg {
-			return requestForNewRendererMsg{
-				rendererWidth: b.viewport.Width - b.viewport.Style.GetHorizontalFrameSize(),
-			}
-		}
-
-	case requestForNewRendererMsg:
-		renderer, err := newRenderer(message.rendererWidth)
-		if err != nil {
-			return b, func() tea.Msg { return fatalErrorMsg{} }
-		}
-		return b, func() tea.Msg {
-			return newRendererMsg{
-				renderer: renderer,
-			}
-		}
-	case newRendererMsg:
-		{
-
-			str, err := b.renderer.Render(b.content)
-			if err != nil {
-				return b, func() tea.Msg {
-					return fatalErrorMsg{}
-				}
-			}
-			// str := "window resized"
-			b.viewport.SetContent(str)
-
-			b.viewport, _ = b.viewport.Update(message)
-			return b, nil
+			return blogPageUpdateNeededMsg{}
 		}
 
 	}
