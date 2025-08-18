@@ -56,10 +56,11 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// b.viewport.SetContent(str)
 		// b.viewport, cmd = b.viewport.Update(message)
 		//
-		vp := newViewPort((message.Width*50)/100, (message.Height*4)/5)
-		spew.Fdump(b.dump, vp.Height, vp.Width)
+		// spew.Fdump(b.dump, vp.Height, vp.Width)
+		b.viewport.Height = message.Height - 7
+		b.viewport.Width = message.Width - message.Width/3 - b.viewport.Style.GetHorizontalFrameSize() - 10
 
-		renderer, err := newRenderer(vp.Width - vp.Style.GetHorizontalFrameSize())
+		renderer, err := newRenderer(b.viewport.Width - b.viewport.Style.GetHorizontalFrameSize())
 		if err != nil {
 			return b, func() tea.Msg {
 				return fatalErrorMsg{}
@@ -72,9 +73,9 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return fatalErrorMsg{}
 			}
 		}
-		vp.SetContent(str)
-		b.viewport = vp
+		b.viewport.SetContent(str)
 
+		b.viewport, cmd = b.viewport.Update(message)
 		return b, cmd
 	}
 	return b, nil
