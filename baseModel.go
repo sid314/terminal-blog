@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"os"
+	"reflect"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -65,8 +66,9 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var all, active, passToList, passToPage bool
 	// if all is true then the msg is passed down to both child models
 	// otherwise if active is true then it is passed down only to the focused model
+	// passToPage and passToList send the messages to page and list respectively
 	if b.dump != nil {
-		spew.Fdump(b.dump, "from basemodel %s", msg)
+		spew.Fdump(b.dump, "from baseModel %s", reflect.TypeOf(msg))
 	}
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
@@ -129,6 +131,8 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		all = true
+	case requestForNewRendererMsg, newRendererMsg:
+		passToPage = true
 
 	}
 	if all {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"reflect"
 
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -30,7 +31,7 @@ type newRendererMsg struct {
 
 func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if b.dump != nil {
-		spew.Fdump(b.dump, "from blogPage %s", msg)
+		spew.Fdump(b.dump, "from blogPage %s", reflect.TypeOf(msg))
 	}
 	switch message := msg.(type) {
 	case tea.KeyMsg:
