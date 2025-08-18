@@ -18,7 +18,7 @@ const (
 )
 
 const (
-	minWidth  = 100
+	minWidth  = 125
 	minHeight = 30
 )
 
