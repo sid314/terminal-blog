@@ -27,6 +27,7 @@ type requestForNewRendererMsg struct {
 type newRendererMsg struct {
 	renderer *glamour.TermRenderer
 }
+type reRenderMsg struct{}
 
 func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if b.dump != nil {
@@ -79,20 +80,22 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case newRendererMsg:
-		{
-
-			str, err := b.renderer.Render(b.content)
-			if err != nil {
-				return b, func() tea.Msg {
-					return fatalErrorMsg{}
-				}
-			}
-			// str := "window resized"
-			b.viewport.SetContent(str)
-
-			b.viewport, _ = b.viewport.Update(message)
-			return b, nil
+		b.renderer = message.renderer
+		return b, func() tea.Msg {
+			return reRenderMsg{}
 		}
+	case reRenderMsg:
+
+		str, err := b.renderer.Render(b.content)
+		if err != nil {
+			return b, func() tea.Msg {
+				return fatalErrorMsg{}
+			}
+		}
+		b.viewport.SetContent(str)
+		var cmd tea.Cmd
+		b.viewport, cmd = b.viewport.Update(message)
+		return b, cmd
 
 	}
 	return b, nil
@@ -110,7 +113,7 @@ func newViewPort(width, height int) viewport.Model {
 }
 
 func newRenderer(renderWidth int) (renderer *glamour.TermRenderer, err error) {
-	return glamour.NewTermRenderer(glamour.WithAutoStyle(), glamour.WithWordWrap(renderWidth))
+	return glamour.NewTermRenderer(glamour.WithAutoStyle(), glamour.WithWordWrap(renderWidth+30))
 }
 
 func newBlogPage(content string, dump io.Writer) (*blogPage, error) {
