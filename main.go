@@ -29,5 +29,8 @@ func main() {
 	go func() {
 		checkFolderUpdates(p)
 	}()
-	p.Run()
+	_, err = p.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

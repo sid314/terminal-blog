@@ -29,6 +29,8 @@ func (m postList) Init() tea.Cmd {
 func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.dump != nil {
 		spew.Fdump(m.dump, "from postlist %s", msg)
+		spew.Fdump(m.dump, "len posts %d", len(m.posts))
+		spew.Fdump(m.dump, "post index %d", m.list.GlobalIndex())
 	}
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -70,13 +72,13 @@ func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(func() tea.Msg {
 				return blogPageUpdateNeededMsg{}
 			}, cmd)
-		case "tab":
-			if m.list.Paginator.Page == m.list.Paginator.TotalPages-1 {
-				m.list.Paginator.Page = 0
-			} else {
-				m.list.NextPage()
-			}
-			m.focused = m.posts[m.list.GlobalIndex()]
+			// case "tab":
+			// 	if m.list.Paginator.Page == m.list.Paginator.TotalPages-1 {
+			// 		m.list.Paginator.Page = 0
+			// 	} else {
+			// 		m.list.NextPage()
+			// 	}
+			// 	m.focused = m.posts[m.list.GlobalIndex()]
 
 		}
 	case tea.WindowSizeMsg:
