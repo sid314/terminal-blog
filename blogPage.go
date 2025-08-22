@@ -18,6 +18,11 @@ type blogPage struct {
 	content  string
 }
 
+type (
+	renderFailedMsg  struct{}
+	renderSuccessMsg string
+)
+
 func (b blogPage) Init() tea.Cmd {
 	return nil
 }
@@ -47,21 +52,20 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		b.viewport.Height = message.Height - 7
 		b.viewport.Width = message.Width - message.Width/3 - b.viewport.Style.GetHorizontalFrameSize() - 10
-		str, err := b.renderer.Render(b.content)
-		if err != nil {
-			return b, func() tea.Msg {
-				return fatalErrorMsg{}
-			}
-		}
-		b.viewport.SetContent(str)
 
-		b.viewport, _ = b.viewport.Update(message)
-		return b, func() tea.Msg {
-			return blogPageUpdateNeededMsg{}
-		}
+		return b, renderWithGlamour(b, b.content)
+
+	case renderSuccessMsg:
+		b.setContent(string(message))
+	case renderFailedMsg:
+		b.setContent("Render Failed")
 
 	}
 	return b, nil
+}
+
+func (b blogPage) setContent(s string) {
+	b.viewport.SetContent(s)
 }
 
 func (b blogPage) View() string {
@@ -75,8 +79,27 @@ func newViewPort(width, height int) viewport.Model {
 	return vp
 }
 
-func newRenderer(renderWidth int) (renderer *glamour.TermRenderer, err error) {
-	return glamour.NewTermRenderer(glamour.WithAutoStyle(), glamour.WithWordWrap(renderWidth))
+// this part is heavily inspired by glow
+func renderWithGlamour(model blogPage, content string) tea.Cmd {
+	return func() tea.Msg {
+		s, err := render(content)
+		if err != nil {
+			return renderFailedMsg{}
+		}
+		return renderSuccessMsg(s)
+	}
+}
+
+func render(content string) (string, error) {
+	r, err := glamour.NewTermRenderer(glamour.WithAutoStyle())
+	if err != nil {
+		return "", err
+	}
+	out, err := r.Render(content)
+	if err != nil {
+		return "", err
+	}
+	return out, nil
 }
 
 func newBlogPage(content string, dump io.Writer) (*blogPage, error) {
@@ -87,7 +110,7 @@ func newBlogPage(content string, dump io.Writer) (*blogPage, error) {
 	vp := newViewPort(70, 27)
 
 	blogPage.viewport = vp
-	renderer, err := newRenderer(vp.Width - vp.Style.GetHorizontalFrameSize())
+	renderer, err := glamour.NewTermRenderer(glamour.WithAutoStyle(), glamour.WithWordWrap(vp.Width-vp.Style.GetHorizontalFrameSize()))
 	if err != nil {
 		return nil, err
 	}

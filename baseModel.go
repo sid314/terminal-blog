@@ -18,8 +18,8 @@ const (
 )
 
 const (
-	minWidth  = 125
-	minHeight = 30
+	minWidth  = 25
+	minHeight = 3
 )
 
 var (
@@ -134,6 +134,8 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		all = true
+	case renderSuccessMsg, renderFailedMsg:
+		passToPage = true
 
 	}
 	if all {
