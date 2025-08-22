@@ -53,7 +53,7 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		b.viewport.Height = message.Height - 7
 		b.viewport.Width = message.Width - message.Width/3 - b.viewport.Style.GetHorizontalFrameSize() - 10
 
-		return b, renderWithGlamour(b, b.content)
+		return b, renderWithGlamour(b.content)
 
 	case renderSuccessMsg:
 		b.setContent(string(message))
@@ -64,7 +64,7 @@ func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return b, nil
 }
 
-func (b blogPage) setContent(s string) {
+func (b *blogPage) setContent(s string) {
 	b.viewport.SetContent(s)
 }
 
@@ -80,7 +80,7 @@ func newViewPort(width, height int) viewport.Model {
 }
 
 // this part is heavily inspired by glow
-func renderWithGlamour(model blogPage, content string) tea.Cmd {
+func renderWithGlamour(content string) tea.Cmd {
 	return func() tea.Msg {
 		s, err := render(content)
 		if err != nil {
