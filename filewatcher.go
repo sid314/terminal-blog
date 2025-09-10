@@ -1,7 +1,6 @@
 package main
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -11,30 +10,30 @@ type (
 	nilMsg              struct{}
 )
 
-func checkFolderUpdates(p *tea.Program) {
+func checkFolderUpdates(a *app) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		p.Send(errMsg{err: err})
+		a.Send(errMsg{err: err})
 	}
 	defer watcher.Close()
 	err = watcher.Add("./posts/")
 	if err != nil {
-		p.Send(errMsg{err: err})
+		a.Send(errMsg{err: err})
 	}
 
 	for {
 		select {
 		case _, ok := <-watcher.Events:
 			if !ok {
-				p.Send(nilMsg{})
+				a.Send(nilMsg{})
 			}
-			p.Send(listUpdateNeededMsg{})
+			a.Send(listUpdateNeededMsg{})
 		case err, ok := <-watcher.Errors:
 			if !ok {
-				p.Send(nilMsg{})
+				a.Send(nilMsg{})
 			}
 
-			p.Send(errMsg{err: err})
+			a.Send(errMsg{err: err})
 		}
 	}
 }
