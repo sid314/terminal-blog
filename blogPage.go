@@ -1,19 +1,14 @@
 package main
 
 import (
-	"io"
-	"reflect"
-
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type blogPage struct {
 	viewport viewport.Model
-	dump     io.Writer
 	renderer *glamour.TermRenderer
 	content  string
 }
@@ -23,9 +18,6 @@ func (b blogPage) Init() tea.Cmd {
 }
 
 func (b blogPage) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if b.dump != nil {
-		spew.Fdump(b.dump, "from blogPage %s", reflect.TypeOf(msg))
-	}
 	switch message := msg.(type) {
 	case tea.KeyMsg:
 		switch message.String() {
@@ -79,9 +71,8 @@ func newRenderer(renderWidth int) (renderer *glamour.TermRenderer, err error) {
 	return glamour.NewTermRenderer(glamour.WithAutoStyle(), glamour.WithWordWrap(renderWidth))
 }
 
-func newBlogPage(content string, dump io.Writer) (*blogPage, error) {
+func newBlogPage(content string) (*blogPage, error) {
 	blogPage := blogPage{}
-	blogPage.dump = dump
 	blogPage.content = content
 
 	vp := newViewPort(70, 27)

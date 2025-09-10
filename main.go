@@ -72,17 +72,7 @@ func (a *app) Start() {
 }
 
 func (a *app) ProgramHandler(s ssh.Session) *tea.Program {
-	var dump *os.File
-	os.Setenv("DEBUG", "true")
-	if _, ok := os.LookupEnv("DEBUG"); ok {
-		var err error
-		dump, err = os.OpenFile("messages.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
-		if err != nil {
-			os.Exit(1)
-		}
-	}
-
-	model, _ := initialBaseModel(dump)
+	model, _ := initialBaseModel()
 
 	p := tea.NewProgram(model, bubbletea.MakeOptions(s)...)
 	a.progs = append(a.progs, p)

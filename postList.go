@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io"
 	"log"
 	"os"
 	"path"
@@ -9,13 +8,11 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type postList struct {
 	posts   []post
 	list    list.Model
-	dump    io.Writer
 	focused post
 	index   int
 }
@@ -27,11 +24,6 @@ func (m postList) Init() tea.Cmd {
 }
 
 func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if m.dump != nil {
-		spew.Fdump(m.dump, "from postlist %s", msg)
-		spew.Fdump(m.dump, "len posts %d", len(m.posts))
-		spew.Fdump(m.dump, "post index %d", m.list.GlobalIndex())
-	}
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if m.list.FilterState() == list.Filtering {
@@ -98,14 +90,12 @@ func (m postList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.list.SetItems(items)
 			m.posts = posts
-			spew.Fdump(m.dump, "updated the items")
 		}
 
 	}
 
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
-	spew.Fdump(m.dump, "updated the list")
 	return m, cmd
 }
 
@@ -129,9 +119,8 @@ func (p post) FilterValue() string {
 	return p.title
 }
 
-func initialList(dump io.Writer) postList {
+func initialList() postList {
 	var postList postList
-	postList.dump = dump
 	items, posts, err := addPosts()
 	if err != nil {
 		log.Fatal(err)

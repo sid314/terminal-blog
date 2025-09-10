@@ -1,13 +1,10 @@
 package main
 
 import (
-	"io"
 	"os"
-	"reflect"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type sessionState uint
@@ -34,7 +31,6 @@ type baseModel struct {
 	postList        postList
 	blogPage        blogPage
 	focused         tea.Model
-	dump            io.Writer
 	fatalErrorState bool
 	tooSmall        bool
 }
@@ -47,9 +43,6 @@ type (
 )
 
 func (b baseModel) sendBlogPageUpdate() tea.Cmd {
-	if b.dump != nil {
-		spew.Fdump(b.dump, "path", b.postList.focused.path)
-	}
 	path := b.postList.focused.path
 	return func() tea.Msg {
 		return updateBlogPageMsg{
@@ -67,9 +60,6 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// if all is true then the msg is passed down to both child models
 	// otherwise if active is true then it is passed down only to the focused model
 	// passToPage and passToList send the messages to page and list respectively
-	if b.dump != nil {
-		spew.Fdump(b.dump, "from baseModel %s", reflect.TypeOf(msg))
-	}
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch message := msg.(type) {
@@ -103,19 +93,12 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case updateBlogPageMsg:
 		fileContentBytes, err := os.ReadFile(message.path)
 		if err != nil {
-			if b.dump != nil {
-				spew.Fdump(b.dump, message.path)
-				spew.Fdump(b.dump, "quitting due to err %s", err.Error())
-			}
 			cmds = append(cmds, func() tea.Msg {
 				return fatalErrorMsg{}
 			})
 		}
 		rendered, err := b.blogPage.renderer.Render(string(fileContentBytes))
 		if err != nil {
-			if b.dump != nil {
-				spew.Fdump(b.dump, "quitting due to err %s", err.Error())
-			}
 			cmds = append(cmds, func() tea.Msg {
 				return fatalErrorMsg{}
 			})
@@ -123,10 +106,8 @@ func (b baseModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		b.blogPage.viewport.SetContent(rendered)
 		passToList = true
 	case tea.WindowSizeMsg:
-		spew.Fdump(b.dump, message.Width, message.Height)
 		b1 := message.Width < minWidth
 		b2 := message.Height < minHeight
-		spew.Fdump(b.dump, b1, b2)
 		if b1 || b2 {
 			b.tooSmall = true
 		} else {
@@ -185,19 +166,18 @@ func (b baseModel) View() string {
 	}
 }
 
-func initialBaseModel(dump io.Writer) (*baseModel, error) {
+func initialBaseModel() (*baseModel, error) {
 	filebuf, err := os.ReadFile("./posts/test1.md")
 	if err != nil {
 		return nil, err
 	}
-	initBlog, err := newBlogPage(string(filebuf), dump)
+	initBlog, err := newBlogPage(string(filebuf))
 	if err != nil {
 		return nil, err
 	}
 	return &baseModel{
 		state:    listView,
-		postList: initialList(dump),
+		postList: initialList(),
 		blogPage: *initBlog,
-		dump:     dump,
 	}, nil
 }
