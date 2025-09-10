@@ -28,7 +28,7 @@ type app struct {
 	progs  []*tea.Program
 }
 
-func (a app) send(msg tea.Msg) {
+func (a app) Send(msg tea.Msg) {
 	for _, p := range a.progs {
 		go p.Send(msg)
 	}
@@ -92,5 +92,8 @@ func (a *app) ProgramHandler(s ssh.Session) *tea.Program {
 
 func main() {
 	app := newApp()
+	go func() {
+		checkFolderUpdates(app)
+	}()
 	app.Start()
 }
