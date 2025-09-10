@@ -1,10 +1,12 @@
 package main
 
 import (
+	"errors"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/log"
 )
 
 type sessionState uint
@@ -167,7 +169,17 @@ func (b baseModel) View() string {
 }
 
 func initialBaseModel() (*baseModel, error) {
-	filebuf, err := os.ReadFile("./posts/test1.md")
+	if _, err := os.Stat("./posts/welcome.md"); errors.Is(err, os.ErrNotExist) {
+		log.Info("No welcome.md found in ./posts")
+		log.Info("Will create a default welcome.md")
+		file, err := os.Create("./posts/welcome.md")
+		if err != nil {
+			log.Fatal("Could not create welcome.md", err)
+		}
+		defer file.Close()
+	}
+	log.Info("welcome.md found, will start server")
+	filebuf, err := os.ReadFile("./posts/welcome.md")
 	if err != nil {
 		return nil, err
 	}
